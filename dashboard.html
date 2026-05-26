@@ -341,76 +341,88 @@ function rebuildDailySeries() {
 }
 
 function renderDailyChart() {
+  // Chart.js 未加载时优雅降级，不阻断表格等数据渲染
+  if (typeof Chart === 'undefined') {
+    document.getElementById('chart1Title').textContent = '每日新增（图表加载中...）';
+    document.getElementById('chartCumCard').style.display = 'none';
+    return;
+  }
   var data = getData();
   var daily = data.daily;
   var dates = daily.dates;
   var store = document.getElementById('dailyStore') ? document.getElementById('dailyStore').value : 'all';
 
-  if (dailyChartNew) dailyChartNew.destroy();
-  if (dailyChartCum) dailyChartCum.destroy();
+  if (dailyChartNew) { try { dailyChartNew.destroy(); } catch(e) {} }
+  if (dailyChartCum) { try { dailyChartCum.destroy(); } catch(e) {} }
 
   var ctxNew = document.getElementById('chartDailyNew');
   if (!ctxNew) return;
 
-  if (currentView === 'new') {
-    document.getElementById('chart1Title').textContent = '每日新增';
-    document.getElementById('chartCumCard').style.display = 'none';
-    dailyChartNew = new Chart(ctxNew, {
-      type: 'line',
-      data: {
-        labels: dates,
-        datasets: [
-          { label: '注册', data: daily.series.new_reg, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.3, fill: false },
-          { label: '签约', data: daily.series.new_sign, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.3, fill: false },
-          { label: '绑定', data: daily.series.new_bind, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3, fill: false },
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'top' } },
-        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-      }
-    });
-  } else {
-    document.getElementById('chart1Title').textContent = '每日新增';
-    document.getElementById('chartCumCard').style.display = 'block';
-    dailyChartNew = new Chart(ctxNew, {
-      type: 'line',
-      data: {
-        labels: dates,
-        datasets: [
-          { label: '注册', data: daily.series.new_reg, borderColor: '#f59e0b', tension: 0.3, fill: false },
-          { label: '签约', data: daily.series.new_sign, borderColor: '#10b981', tension: 0.3, fill: false },
-          { label: '绑定', data: daily.series.new_bind, borderColor: '#3b82f6', tension: 0.3, fill: false },
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'top' } },
-        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-      }
-    });
+  try {
+    if (currentView === 'new') {
+      document.getElementById('chart1Title').textContent = '每日新增';
+      document.getElementById('chartCumCard').style.display = 'none';
+      dailyChartNew = new Chart(ctxNew, {
+        type: 'line',
+        data: {
+          labels: dates,
+          datasets: [
+            { label: '注册', data: daily.series.new_reg, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.3, fill: false },
+            { label: '签约', data: daily.series.new_sign, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.3, fill: false },
+            { label: '绑定', data: daily.series.new_bind, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3, fill: false },
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'top' } },
+          scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+        }
+      });
+    } else {
+      document.getElementById('chart1Title').textContent = '每日新增';
+      document.getElementById('chartCumCard').style.display = 'block';
+      dailyChartNew = new Chart(ctxNew, {
+        type: 'line',
+        data: {
+          labels: dates,
+          datasets: [
+            { label: '注册', data: daily.series.new_reg, borderColor: '#f59e0b', tension: 0.3, fill: false },
+            { label: '签约', data: daily.series.new_sign, borderColor: '#10b981', tension: 0.3, fill: false },
+            { label: '绑定', data: daily.series.new_bind, borderColor: '#3b82f6', tension: 0.3, fill: false },
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'top' } },
+          scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+        }
+      });
 
-    var ctxCum = document.getElementById('chartDailyCum');
-    dailyChartCum = new Chart(ctxCum, {
-      type: 'line',
-      data: {
-        labels: dates,
-        datasets: [
-          { label: '累计绑定率', data: daily.cumul_rates.bind_rate, borderColor: '#3b82f6', tension: 0.3, fill: false },
-          { label: '累计婚期率', data: daily.cumul_rates.hunqi_rate, borderColor: '#f59e0b', tension: 0.3, fill: false },
-          { label: '累计管家率', data: daily.cumul_rates.guanjia_rate, borderColor: '#10b981', tension: 0.3, fill: false },
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'top' } },
-        scales: { y: { beginAtZero: true, max: 100, ticks: { callback: function(v) { return v + '%'; } } } },
-      }
-    });
+      var ctxCum = document.getElementById('chartDailyCum');
+      dailyChartCum = new Chart(ctxCum, {
+        type: 'line',
+        data: {
+          labels: dates,
+          datasets: [
+            { label: '累计绑定率', data: daily.cumul_rates.bind_rate, borderColor: '#3b82f6', tension: 0.3, fill: false },
+            { label: '累计婚期率', data: daily.cumul_rates.hunqi_rate, borderColor: '#f59e0b', tension: 0.3, fill: false },
+            { label: '累计管家率', data: daily.cumul_rates.guanjia_rate, borderColor: '#10b981', tension: 0.3, fill: false },
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'top' } },
+          scales: { y: { beginAtZero: true, max: 100, ticks: { callback: function(v) { return v + '%'; } } } },
+        }
+      });
+    }
+  } catch(e) {
+    // Chart 创建失败时静默降级
+    document.getElementById('chart1Title').textContent = '每日新增（图表暂不可用）';
+    document.getElementById('chartCumCard').style.display = 'none';
   }
 }
 
@@ -614,13 +626,16 @@ function renderModal(title, sub, records, isStore) {
 }
 
 // ===== 全局渲染 =====
+function safeRender(name, fn) {
+  try { fn(); } catch(e) { console.error('Render error in ' + name + ':', e); }
+}
 function renderAll() {
-  renderKPI();
-  renderFunnel();
-  renderRegInfo();
-  renderDaily();
-  renderStoreTable();
-  renderRegDetail();
+  safeRender('KPI', renderKPI);
+  safeRender('Funnel', renderFunnel);
+  safeRender('RegInfo', renderRegInfo);
+  safeRender('Daily', renderDaily);
+  safeRender('StoreTable', renderStoreTable);
+  safeRender('RegDetail', renderRegDetail);
 }
 
 // 初始化
