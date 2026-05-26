@@ -198,7 +198,7 @@ function getData() {
 }
 
 function getStoreLink(name) {
-  return '<a class="store-link" onclick="showStoreDetail('' + name + '')">' + name + '</a>';
+  return '<a class="store-link" onclick="showStoreDetail(\'' + name + '\')">' + name + '</a>';
 }
 
 // ===== 月度切换 =====
@@ -235,7 +235,7 @@ function renderKPI() {
   var html = '';
   var keys = ['sign', 'bind', 'hunqi', 'guanjia'];
   for (var i = 0; i < rates.length; i++) {
-    html += '<div class="kpi-card" onclick="showStoreDetail('' + keys[i] + '')">' +
+    html += '<div class="kpi-card" onclick="showStoreDetail(\'' + keys[i] + '\')">' +
       '<div class="label">' + rates[i].label + '</div>' +
       '<div class="value">' + rates[i].value + '</div>' +
       '<div class="rate">' + rates[i].rate + '</div></div>';
@@ -311,8 +311,8 @@ function renderDaily() {
   var html = '<div class="daily-section"><h2>每日数据趋势</h2>' +
     '<div class="daily-controls">' +
     '<select id="dailyStore" onchange="rebuildDailySeries();renderDailyChart();renderDailyTable()">' + selOpts + '</select>' +
-    '<button class="toggle-btn active-new" id="btnNew" onclick="switchView('new')">新增</button>' +
-    '<button class="toggle-btn inactive" id="btnCum" onclick="switchView('cum')">累计转化率</button>' +
+    '<button class="toggle-btn active-new" id="btnNew" onclick="switchView(\'new\')">新增</button>' +
+    '<button class="toggle-btn inactive" id="btnCum" onclick="switchView(\'cum\')">累计转化率</button>' +
     '</div>' +
     '<div class="chart-grid" id="dailyCharts">' +
     '<div class="chart-card"><h3 id="chart1Title">每日新增</h3><canvas id="chartDailyNew" height="200"></canvas></div>' +
@@ -513,7 +513,7 @@ function renderRegDetail() {
     var unboundCount = users.length - boundCount;
     var bindRate = users.length > 0 ? Math.round(boundCount / users.length * 1000) / 10 : 0;
 
-    html += '<div class="store-reg-header" onclick="toggleRegDetail('' + store.replace(/'/g, "\'") + '')">' +
+    html += '<div class="store-reg-header" onclick="toggleRegDetail(\'' + store.replace(/'/g, "\\'") + '\')">' +
       '<div style="display:flex;align-items:center;gap:12px">' +
       '<span class="expand-icon" id="icon_' + i + '">▶</span>' +
       '<span class="store-name">' + store + '</span>' +
