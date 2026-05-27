@@ -388,6 +388,16 @@ function rebuildDailySeries() {
   // no-op: data is already in ALL_DATA
 }
 
+function buildStoreSeries(daily, dates, store, key) {
+  // 从 daily.daily 中提取指定门店的每日数据序列
+  var series = [];
+  for (var i = 0; i < dates.length; i++) {
+    var d = daily.daily[dates[i]];
+    series.push(d && d[key] ? (d[key][store] || 0) : 0);
+  }
+  return series;
+}
+
 function renderDailyChart() {
   // Chart.js 未加载时优雅降级，不阻断表格等数据渲染
   if (typeof Chart === 'undefined') {
@@ -399,6 +409,7 @@ function renderDailyChart() {
   var daily = data.daily;
   var dates = daily.dates;
   var store = document.getElementById('dailyStore') ? document.getElementById('dailyStore').value : 'all';
+  var storeLabel = store === 'all' ? '全部门店' : store;
 
   if (dailyChartNew) { try { dailyChartNew.destroy(); } catch(e) {} }
   if (dailyChartCum) { try { dailyChartCum.destroy(); } catch(e) {} }
@@ -408,16 +419,26 @@ function renderDailyChart() {
 
   try {
     if (currentView === 'new') {
-      document.getElementById('chart1Title').textContent = '每日新增';
+      document.getElementById('chart1Title').textContent = '每日新增 - ' + storeLabel;
       document.getElementById('chartCumCard').style.display = 'none';
+
+      var regD, signD, bindD;
+      if (store === 'all') {
+        regD = daily.series.new_reg; signD = daily.series.new_sign; bindD = daily.series.new_bind;
+      } else {
+        regD = buildStoreSeries(daily, dates, store, 'reg');
+        signD = buildStoreSeries(daily, dates, store, 'sign');
+        bindD = buildStoreSeries(daily, dates, store, 'bind');
+      }
+
       dailyChartNew = new Chart(ctxNew, {
         type: 'line',
         data: {
           labels: dates,
           datasets: [
-            { label: '注册', data: daily.series.new_reg, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.3, fill: false },
-            { label: '签约', data: daily.series.new_sign, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.3, fill: false },
-            { label: '绑定', data: daily.series.new_bind, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3, fill: false },
+            { label: '注册', data: regD, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', tension: 0.3, fill: false },
+            { label: '签约', data: signD, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.3, fill: false },
+            { label: '绑定', data: bindD, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', tension: 0.3, fill: false },
           ]
         },
         options: {
@@ -428,16 +449,26 @@ function renderDailyChart() {
         }
       });
     } else {
-      document.getElementById('chart1Title').textContent = '每日新增';
+      document.getElementById('chart1Title').textContent = '每日新增 - ' + storeLabel;
       document.getElementById('chartCumCard').style.display = 'block';
+
+      var regD2, signD2, bindD2;
+      if (store === 'all') {
+        regD2 = daily.series.new_reg; signD2 = daily.series.new_sign; bindD2 = daily.series.new_bind;
+      } else {
+        regD2 = buildStoreSeries(daily, dates, store, 'reg');
+        signD2 = buildStoreSeries(daily, dates, store, 'sign');
+        bindD2 = buildStoreSeries(daily, dates, store, 'bind');
+      }
+
       dailyChartNew = new Chart(ctxNew, {
         type: 'line',
         data: {
           labels: dates,
           datasets: [
-            { label: '注册', data: daily.series.new_reg, borderColor: '#f59e0b', tension: 0.3, fill: false },
-            { label: '签约', data: daily.series.new_sign, borderColor: '#10b981', tension: 0.3, fill: false },
-            { label: '绑定', data: daily.series.new_bind, borderColor: '#3b82f6', tension: 0.3, fill: false },
+            { label: '注册', data: regD2, borderColor: '#f59e0b', tension: 0.3, fill: false },
+            { label: '签约', data: signD2, borderColor: '#10b981', tension: 0.3, fill: false },
+            { label: '绑定', data: bindD2, borderColor: '#3b82f6', tension: 0.3, fill: false },
           ]
         },
         options: {
@@ -449,23 +480,60 @@ function renderDailyChart() {
       });
 
       var ctxCum = document.getElementById('chartDailyCum');
-      dailyChartCum = new Chart(ctxCum, {
-        type: 'line',
-        data: {
-          labels: dates,
-          datasets: [
-            { label: '累计绑定率', data: daily.cumul_rates.bind_rate, borderColor: '#3b82f6', tension: 0.3, fill: false },
-            { label: '累计婚期率', data: daily.cumul_rates.hunqi_rate, borderColor: '#f59e0b', tension: 0.3, fill: false },
-            { label: '累计管家率', data: daily.cumul_rates.guanjia_rate, borderColor: '#10b981', tension: 0.3, fill: false },
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: 'top' } },
-          scales: { y: { beginAtZero: true, max: 100, ticks: { callback: function(v) { return v + '%'; } } } },
+      if (store === 'all') {
+        document.getElementById('chartCumCard').querySelector('h3').textContent = '累计转化率';
+        dailyChartCum = new Chart(ctxCum, {
+          type: 'line',
+          data: {
+            labels: dates,
+            datasets: [
+              { label: '累计绑定率', data: daily.cumul_rates.bind_rate, borderColor: '#3b82f6', tension: 0.3, fill: false },
+              { label: '累计婚期率', data: daily.cumul_rates.hunqi_rate, borderColor: '#f59e0b', tension: 0.3, fill: false },
+              { label: '累计管家率', data: daily.cumul_rates.guanjia_rate, borderColor: '#10b981', tension: 0.3, fill: false },
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'top' } },
+            scales: { y: { beginAtZero: true, max: 100, ticks: { callback: function(v) { return v + '%'; } } } },
+          }
+        });
+      } else {
+        // 单门店累计：注册/签约/绑定累计 + 绑定率
+        document.getElementById('chartCumCard').querySelector('h3').textContent = '累计趋势 - ' + storeLabel;
+        var cumReg = [], cumSign = [], cumBind = [], cumBindRate = [];
+        var cr = 0, cs = 0, cb = 0;
+        for (var i = 0; i < dates.length; i++) {
+          var d = daily.daily[dates[i]];
+          cr += (d && d.reg ? (d.reg[store] || 0) : 0);
+          cs += (d && d.sign ? (d.sign[store] || 0) : 0);
+          cb += (d && d.bind ? (d.bind[store] || 0) : 0);
+          cumReg.push(cr); cumSign.push(cs); cumBind.push(cb);
+          cumBindRate.push(cs > 0 ? Math.round(cb / cs * 1000) / 10 : 0);
         }
-      });
+        dailyChartCum = new Chart(ctxCum, {
+          type: 'line',
+          data: {
+            labels: dates,
+            datasets: [
+              { label: '累计注册', data: cumReg, borderColor: '#f59e0b', tension: 0.3, fill: false, borderDash: [5,5] },
+              { label: '累计签约', data: cumSign, borderColor: '#10b981', tension: 0.3, fill: false, borderDash: [5,5] },
+              { label: '累计绑定', data: cumBind, borderColor: '#8b5cf6', tension: 0.3, fill: false, borderDash: [5,5] },
+              { label: '累计绑定率', data: cumBindRate, borderColor: '#3b82f6', tension: 0.3, fill: false, yAxisID: 'y1' },
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'top' } },
+            scales: {
+              y: { beginAtZero: true, ticks: { stepSize: 1 }, position: 'left', title: { display: true, text: '数量' } },
+              y1: { beginAtZero: true, max: 100, position: 'right', ticks: { callback: function(v) { return v + '%'; } }, grid: { drawOnChartArea: false } },
+            },
+          }
+        });
+      }
     }
   } catch(e) {
     // Chart 创建失败时静默降级
