@@ -97,9 +97,16 @@ tr:hover{background:#fafbff}
 .rank-no.top3{color:#cd7c3a}
 .rank-name{flex:1;font-size:13px;color:#374151;font-weight:500}
 .rank-bar-wrap{flex:2;height:10px;background:#e5e7eb;border-radius:5px;overflow:hidden}
-.rank-bar-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,#6366f1,#a78bfa)}
-.rank-bind-val{font-size:12px;color:#6366f1;font-weight:700;min-width:48px;text-align:right}
+.rank-bar-fill{height:100%;border-radius:5px;transition:width .4s ease}
+.rank-bar-fill.bind{background:linear-gradient(90deg,#6366f1,#a78bfa)}
+.rank-bar-fill.hunqi{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.rank-bar-fill.guanjia{background:linear-gradient(90deg,#10b981,#34d399)}
+.rank-bind-val{font-size:12px;color:#6366f1;font-weight:700;min-width:60px;text-align:right}
 .rank-rate{font-size:12px;color:#10b981;font-weight:700;min-width:44px;text-align:right}
+.rank-filter{display:flex;gap:8px;margin-bottom:12px}
+.rank-tab{padding:5px 14px;border-radius:20px;border:1.5px solid #e5e7eb;background:#fff;font-size:12px;color:#6b7280;cursor:pointer;transition:all .2s}
+.rank-tab:hover{border-color:#6366f1;color:#6366f1}
+.rank-tab.active{background:#6366f1;color:#fff;border-color:#6366f1}
 .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:flex-start;padding-top:40px;overflow-y:auto}
 .modal-overlay.active{display:flex}
 .modal-box{background:#fff;border-radius:16px;padding:24px;width:90%;max-width:900px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative}
@@ -254,41 +261,67 @@ function renderKPI() {
 }
 
 // ===== 绑定率排名 =====
+// ===== 排名 =====
+var currentRankMetric = 'br'; // 默认绑定率
+
+function switchRankMetric(metric) {
+  if (currentRankMetric === metric) return;
+  currentRankMetric = metric;
+  renderRankSection();
+}
+
 function renderRankSection() {
   var S = getData().S;
   if (!S) return;
   var stores = Object.keys(S).filter(function(k) { return k !== '游客' && k !== '管家'; });
-  // 按绑定率降序排列（绑定率=绑定/签约，br字段）
+
+  // 根据当前指标确定排序字段和显示信息
+  var metricConfig;
+  if (currentRankMetric === 'br') {
+    metricConfig = { key: 'br', numKey: 'bind', denKey: 'sign', label: '绑定率', desc: '绑定率 = 绑定数 / 签约数', barCls: 'bind', valColor: '#6366f1' };
+  } else if (currentRankMetric === 'hr') {
+    metricConfig = { key: 'hr', numKey: 'hunqi', denKey: 'bind', label: '婚期率', desc: '婚期率 = 已填婚期 / 绑定数', barCls: 'hunqi', valColor: '#f59e0b' };
+  } else {
+    metricConfig = { key: 'gr', numKey: 'guanjia', denKey: 'bind', label: '管家率', desc: '管家率 = 已分配管家 / 绑定数', barCls: 'guanjia', valColor: '#10b981' };
+  }
+
   stores.sort(function(a, b) {
-    var brA = S[a] ? S[a].br : 0;
-    var brB = S[b] ? S[b].br : 0;
-    return brB - brA;
+    var vA = S[a] ? (S[a][metricConfig.key] || 0) : 0;
+    var vB = S[b] ? (S[b][metricConfig.key] || 0) : 0;
+    return vB - vA;
   });
-  var maxBr = stores.length > 0 ? (S[stores[0]].br || 0) : 100;
-  if (maxBr <= 0) maxBr = 100;
+  var maxVal = stores.length > 0 ? (S[stores[0]][metricConfig.key] || 0) : 100;
+  if (maxVal <= 0) maxVal = 100;
+
+  // 筛选标签
+  var tabs = '<div class="rank-filter">' +
+    '<button class="rank-tab' + (currentRankMetric === 'br' ? ' active' : '') + '" onclick="switchRankMetric('br')">绑定率 </button>' +
+    '<button class="rank-tab' + (currentRankMetric === 'hr' ? ' active' : '') + '" onclick="switchRankMetric('hr')">婚期率 </button>' +
+    '<button class="rank-tab' + (currentRankMetric === 'gr' ? ' active' : '') + '" onclick="switchRankMetric('gr')">管家率 </button>' +
+    '</div>';
 
   var html = '<div class="rank-list">';
   for (var i = 0; i < stores.length; i++) {
     var s = stores[i];
     var d = S[s];
-    var br = d ? (d.br || 0) : 0;
-    var bind = d ? (d.bind || 0) : 0;
-    var sign = d ? (d.sign || 0) : 0;
-    var barPct = maxBr > 0 ? Math.round(br / maxBr * 100) : 0;
+    var val = d ? (d[metricConfig.key] || 0) : 0;
+    var num = d ? (d[metricConfig.numKey] || 0) : 0;
+    var den = d ? (d[metricConfig.denKey] || 0) : 0;
+    var barPct = maxVal > 0 ? Math.round(val / maxVal * 100) : 0;
     var rankCls = i === 0 ? ' top1' : (i === 1 ? ' top2' : (i === 2 ? ' top3' : ''));
     html += '<div class="rank-item">' +
       '<div class="rank-no' + rankCls + '">' + (i + 1) + '</div>' +
       '<div class="rank-name">' + s + '</div>' +
-      '<div class="rank-bar-wrap"><div class="rank-bar-fill" style="width:' + barPct + '%"></div></div>' +
-      '<div class="rank-bind-val">' + bind + '/' + sign + '</div>' +
-      '<div class="rank-rate">' + br + '%</div>' +
+      '<div class="rank-bar-wrap"><div class="rank-bar-fill ' + metricConfig.barCls + '" style="width:' + barPct + '%"></div></div>' +
+      '<div class="rank-bind-val" style="color:' + metricConfig.valColor + '">' + num + '/' + den + '</div>' +
+      '<div class="rank-rate">' + val + '%</div>' +
       '</div>';
   }
   html += '</div>';
 
   document.getElementById('rankSection').innerHTML =
-    '<h2>门店绑定率排名</h2>' +
-    '<div class="rank-sub">绑定率 = 绑定数 / 签约数，按绑定率从高到低</div>' + html;
+    '<h2>门店' + metricConfig.label + '排名</h2>' +
+    '<div class="rank-sub">' + metricConfig.desc + '，按' + metricConfig.label + '从高到低</div>' + tabs + html;
 }
 
 // ===== 漏斗 =====
