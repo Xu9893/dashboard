@@ -17,6 +17,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 .header h1{font-size:28px;font-weight:700;color:#1a1a2e}
 .header .sub{font-size:14px;color:#666;margin-top:6px}
 .header .note{font-size:12px;color:#b45309;margin-top:8px;background:#fef3c7;display:inline-block;padding:4px 12px;border-radius:4px}
+.read-guide{background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);color:#e0e7ff;border-radius:12px;padding:16px 20px;margin-bottom:24px;box-shadow:0 4px 16px rgba(79,70,229,.25)}
+.read-guide .rg-title{font-size:15px;font-weight:700;color:#c7d2fe;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.read-guide .rg-title::before{content:'📖';font-size:18px}
+.read-guide .rg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 20px}
+@media(max-width:900px){.read-guide .rg-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.read-guide .rg-grid{grid-template-columns:1fr}}
+.read-guide .rg-item{font-size:13px;line-height:1.6}
+.read-guide .rg-item b{color:#a5b4fc}
+.read-guide .rg-item .unit{color:#94a3b8;font-size:11px;margin-left:2px}
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
 .kpi-card{background:#fff;border-radius:12px;padding:20px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06);transition:transform .2s;cursor:pointer}
 .kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
@@ -140,6 +149,19 @@ tr:hover{background:#fafbff}
   <h1>荣悦台 · 门店绩效看板</h1>
   <div class="sub" id="headerSub">数据维度：注册 · 签约 · 绑定 · 婚期 · 管家</div>
   <div class="note">计算规则：<b>绑定率</b>=绑定/签约 &nbsp;|&nbsp; <b>婚期填写率</b>=已填婚期/绑定 &nbsp;|&nbsp; <b>管家分配率</b>=已分配管家/绑定</div>
+</div>
+
+<!-- 看板必读 -->
+<div class="read-guide">
+  <div class="rg-title">看板必读</div>
+  <div class="rg-grid">
+    <div class="rg-item"><b>注册数</b><span class="unit">（人）</span>：使用内推码注册的人数</div>
+    <div class="rg-item"><b>签约数</b><span class="unit">（对）</span>：门店签约婚宴的对数</div>
+    <div class="rg-item"><b>绑定数</b><span class="unit">（对）</span>：完成夫妻绑定的对数</div>
+    <div class="rg-item"><b>已填婚期</b><span class="unit">（对）</span>：已经填写婚期的对数</div>
+    <div class="rg-item"><b>已分配管家</b><span class="unit">（对）</span>：已经分配好管家的对数</div>
+    <div class="rg-item" style="color:#94a3b8"><b>注：</b>签约/绑定/婚期/管家均按"对"计，两人=一对</div>
+  </div>
 </div>
 
 <!-- 日期筛选 -->
