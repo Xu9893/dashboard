@@ -295,9 +295,9 @@ function renderRankSection() {
 
   // 筛选标签
   var tabs = '<div class="rank-filter">' +
-    '<button class="rank-tab' + (currentRankMetric === 'br' ? ' active' : '') + '" onclick="switchRankMetric('br')">绑定率 </button>' +
-    '<button class="rank-tab' + (currentRankMetric === 'hr' ? ' active' : '') + '" onclick="switchRankMetric('hr')">婚期率 </button>' +
-    '<button class="rank-tab' + (currentRankMetric === 'gr' ? ' active' : '') + '" onclick="switchRankMetric('gr')">管家率 </button>' +
+    '<button class="rank-tab' + (currentRankMetric === 'br' ? ' active' : '') + '" onclick="switchRankMetric(&#39;br&#39;)">绑定率 </button>' +
+    '<button class="rank-tab' + (currentRankMetric === 'hr' ? ' active' : '') + '" onclick="switchRankMetric(&#39;hr&#39;)">婚期率 </button>' +
+    '<button class="rank-tab' + (currentRankMetric === 'gr' ? ' active' : '') + '" onclick="switchRankMetric(&#39;gr&#39;)">管家率 </button>' +
     '</div>';
 
   var html = '<div class="rank-list">';
