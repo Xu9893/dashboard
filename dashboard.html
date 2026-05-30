@@ -121,7 +121,9 @@ tr:hover{background:#fafbff}
 .modal-box{background:#fff;border-radius:16px;padding:24px;width:90%;max-width:900px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);position:relative}
 .modal-close{position:absolute;top:12px;right:16px;font-size:24px;color:#999;cursor:pointer;background:none;border:none;line-height:1}
 .modal-close:hover{color:#333}
-.modal-box h3{font-size:20px;margin-bottom:4px;color:#1a1a2e}
+.modal-box h3{font-size:20px;margin-bottom:4px;color:#1a1a2e;display:flex;align-items:center;gap:10px}
+.modal-box h3 .dl-btn{font-size:12px;font-weight:500;background:#7c3aed;color:#fff;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;transition:background .2s;white-space:nowrap}
+.modal-box h3 .dl-btn:hover{background:#6d28d9}
 .modal-box .modal-sub{font-size:13px;color:#888;margin-bottom:16px}
 .date-filter{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:24px;padding:12px 20px;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .date-filter input[type="date"]{padding:6px 12px;font-size:14px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer;outline:none;color:#374151}
@@ -867,8 +869,9 @@ function showStoreDetail(name) {
 }
 
 function renderModal(title, sub, records, isStore) {
-  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalTitle').innerHTML = title + ' <button class="dl-btn" onclick="downloadDetailCSV()">下载明细</button>';
   document.getElementById('modalSub').textContent = sub;
+  window._dlData = { title: title, records: records, isStore: isStore };
   var html = '';
   for (var i = 0; i < records.length; i++) {
     var r = records[i];
@@ -886,6 +889,33 @@ function renderModal(title, sub, records, isStore) {
   }
   document.getElementById('modalBody').innerHTML = html;
   document.getElementById('modal').classList.add('active');
+}
+
+function downloadDetailCSV() {
+  var d = window._dlData;
+  if (!d || !d.records) return;
+  var recs = d.records, isStore = d.isStore;
+  var headers = isStore
+    ? ['绑定日期','用户1','手机号','用户2','手机号','婚期','管家','管家手机']
+    : ['门店','绑定日期','用户1','手机号','用户2','手机号','婚期','管家','管家手机'];
+  var BOM = '\uFEFF';
+  var csv = BOM + headers.join(',') + '\n';
+  for (var i = 0; i < recs.length; i++) {
+    var r = recs[i];
+    var row = isStore
+      ? [r.t||'', r.u||'', r.up||'', r.p||'', r.pp||'', r.hq||'', r.gn||'', r.gp||'']
+      : [(r.store||''), r.t||'', r.u||'', r.up||'', r.p||'', r.pp||'', r.hq||'', r.gn||'', r.gp||''];
+    csv += row.map(function(v) { return '"' + String(v).replace(/"/g,'""') + '"'; }).join(',') + '\n';
+  }
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = (d.title || '明细') + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ===== 日期筛选 =====
