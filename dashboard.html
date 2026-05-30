@@ -89,6 +89,8 @@ tr:hover{background:#fafbff}
 .store-reg-header .store-stats span{margin-left:8px}
 .store-reg-header .expand-icon{font-size:12px;color:#4f46e5;transition:transform .2s}
 .store-reg-header .expand-icon.open{transform:rotate(90deg)}
+.store-reg-header .rd-dl-btn{font-size:11px;font-weight:500;background:#7c3aed;color:#fff;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;transition:background .2s;white-space:nowrap;margin-left:8px}
+.store-reg-header .rd-dl-btn:hover{background:#6d28d9}
 .reg-detail-content{display:none;padding:8px 0 16px}
 .reg-detail-content.open{display:block}
 .reg-detail-content table{font-size:12px;width:100%}
@@ -776,6 +778,7 @@ function renderRegDetail() {
       '<div style="display:flex;align-items:center;gap:12px">' +
       '<span class="expand-icon" id="icon_' + i + '">▶</span>' +
       '<span class="store-name">' + store + '</span>' +
+      '<button class="rd-dl-btn" onclick="event.stopPropagation();downloadRegDetailCSV(\'' + store.replace(/'/g, "\\'") + '\')">下载明细</button>' +
       '</div>' +
       '<div class="store-stats">' +
       '注册 <b>' + users.length + '</b> 人' +
@@ -821,6 +824,37 @@ function toggleRegDetail(storeName) {
     content.classList.add('open');
     icon.classList.add('open');
   }
+}
+
+function downloadRegDetailCSV(storeName) {
+  var data = getData();
+  var RD = data.RD;
+  if (!RD || !RD[storeName]) return;
+  var users = RD[storeName];
+  var BOM = '\uFEFF';
+  var headers = ['激活码','昵称','手机号','注册日期','绑定状态','婚期'];
+  var csv = BOM + headers.join(',') + '\n';
+  for (var i = 0; i < users.length; i++) {
+    var u = users[i];
+    var row = [
+      u.cd || '',
+      u.n || '',
+      u.ph || '',
+      u.t || '',
+      u.b ? '已绑定' : '未绑定',
+      u.hq || '',
+    ];
+    csv += row.map(function(v) { return '"' + String(v).replace(/"/g,'""') + '"'; }).join(',') + '\n';
+  }
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = storeName + '_注册明细.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ===== 弹窗 =====
